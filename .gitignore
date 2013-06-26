@@ -1,1 +1,3 @@
-/doc/motivation.html
+/doc/*.html
+/target/
+/pom.xml
