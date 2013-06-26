@@ -24,10 +24,17 @@
     (when symbol
       (.getText symbol))))
 
+(defn lex [mystr]
+  (let [
+        input (new ANTLRInputStream (char-array mystr) (count mystr))
+        lexer (new HelloLexer input)]
+    (new CommonTokenStream lexer)))
+
 (defn parse-stuffs [mystr]
-  (let [input (new ANTLRInputStream (char-array mystr) (count mystr))
-        lexer (new HelloLexer input)
-        tokens (new CommonTokenStream lexer)
+  (let [
+        tokens (lex mystr)
         parser (new HelloParser tokens)
         tree (.r parser)]
     (tree-to-map tree)))
+
+

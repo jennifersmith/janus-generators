@@ -1,0 +1,11 @@
+BACK_CLOSE_PAREN=2
+R_ANCHOR=4
+TODO=6
+L_ANCHOR=3
+BACK_OPEN_PAREN=1
+BACKREF=5
+'$'=4
+'('=1
+'todo'=6
+')'=2
+'^'=3
