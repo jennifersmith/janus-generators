@@ -1,7 +1,6 @@
 (ns janus-generators.core-test
-  (:use clojure.test
+  (:use midje.sweet
         janus-generators.core))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(fact
+ (first (generate-from-regex "A")) => "A")

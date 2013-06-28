@@ -1,4 +1,2 @@
-S = AB*
-AB = A B
-A = "a"+
-B = "b"+
+S = SINGLE_CHAR*
+SINGLE_CHAR=#"[a-zA-Z]"
