@@ -3,4 +3,5 @@
         janus-generators.core))
 
 (fact
- (first (generate-from-regex "A")) => "A")
+ (take 2 (generate-from-regex "A" 10)) => ["A"]
+  (take 2 (generate-from-regex "." 10)) => ["a" "b"])

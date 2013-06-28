@@ -1,2 +1,6 @@
-S = SINGLE_CHAR*
-SINGLE_CHAR=#"[a-zA-Z]"
+S = ONE_CHAR_RE+
+ONE_CHAR_RE = ORD_CHAR | ANY_CHAR | BRACKET_EXPRESSION
+ANY_CHAR = "."
+ORD_CHAR=#"[^\^\.\[\$\(\)\|\*\+\?\{\\]"
+SPEC_CHAR=#"[\^\.\[\$\(\)\|\*\+\?\{\\]"
+BRACKET_EXPRESSION="[BLAAAH]"
