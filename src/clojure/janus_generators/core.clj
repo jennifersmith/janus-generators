@@ -9,9 +9,9 @@
    (slurp "grammars/basic")
    :start :S))
 
-(defn parse [v]
-  (let [parser (load-parser)]
-    (parser v)))
+;; oooooops
+(def parse (load-parser))
+
 
 
 (defn one-char-regexo [body result]
@@ -25,7 +25,7 @@
          (== thechar result)))
 
 (defn any-charo [body result]
-  (fd/in result (fd/interval (int \A) (int \z))))
+  (fd/in result (fd/interval 33 127))) ;; visible char range
 
 ;; OK So I want a conda right because once it has succeeded down one of the alternatives it probly doesnt want to succeed down another... probably. Unless i was generating regexes. Which is not really want I want to do. Though that would be awesome
 
