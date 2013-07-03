@@ -23,5 +23,4 @@
          #"A"
          #"."
          #"AB"
-         #"ABCDefg"
-         #"[A-Z]")
+         #"ABCDefg")
