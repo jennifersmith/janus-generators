@@ -12,7 +12,7 @@
 ;; oooooops
 (def parse (load-parser))
 
-
+(declare regex-chunk)
 
 (defn one-char-regexo [body result]
   (fresh [thechar]
@@ -24,8 +24,24 @@
          (firsto body thechar)
          (== thechar result)))
 
+(defn any-char-domain []
+  (fd/interval 33 127))
+
 (defn any-charo [body result]
-  (fd/in result (fd/interval 33 127))) ;; visible char range
+  (fd/in result (any-char-domain))) ;; visible char range
+
+
+(defn bracket-expressiono [regex result]
+  (fresh [bracket body close]
+          (== regex [bracket body close])
+         (fresh [list-type foo]
+                (== body [list-type foo])
+                (any-charo "REMOVE THIS PARAM" result)
+                (fresh [domain]
+                       (conda
+                        ((== :MATCHING_LIST list-type) (fd/in result (fd/domain 60 70 domain)))
+                        ((log "Bracket-expression: I don't have a clue what " list-type " is!") 
+                         (trace-s)))))))
 
 ;; OK So I want a conda right because once it has succeeded down one of the alternatives it probly doesnt want to succeed down another... probably. Unless i was generating regexes. Which is not really want I want to do. Though that would be awesome
 
@@ -36,6 +52,7 @@
           ((== identifier :ONE_CHAR_RE) (one-char-regexo body result)) 
           ((== identifier :ORD_CHAR)(ord-charo body result))
           ((== identifier :ANY_CHAR) (any-charo body result))
+          ((== identifier :BRACKET_EXPRESSION) (bracket-expressiono body result))
           ((log "I don't have a clue what " identifier " is!") (trace-s)))))
 
 (defn regex-unify [regex result]

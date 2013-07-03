@@ -9,6 +9,19 @@
 (defn all-match-regex? [r]
   (has every? (matching-regex? r)))
 
-(fact
- (take 2 (generate-from-regex "A" 10)) => (all-match-regex? #"A")
-  (take 2 (generate-from-regex "." 10)) => (all-match-regex? #"."))
+;; better way? 
+(defmacro regex-generates-fact [regex] 
+  (let [fact-name (str "Generates strings from regex " regex) 
+        regex-str (str regex)]
+    `(fact fact-name  
+           (generate-from-regex ~regex-str 10) => (all-match-regex? ~regex))))
+
+(tabular "Regex generation"
+         (fact 
+          (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+         ?r
+         #"A"
+         #"."
+         #"AB"
+         #"ABCDefg"
+         #"[A-Z]")
