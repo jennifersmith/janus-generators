@@ -1,5 +1,7 @@
-S = ONE_CHAR_RE+
+S = SIMPLE_RE+
+SIMPLE_RE = ONE_CHAR_RE DUPL_SYMBOL?
 ONE_CHAR_RE = ORD_CHAR | ANY_CHAR | BRACKET_EXPRESSION
+DUPL_SYMBOL = "*"
 ANY_CHAR = "."
 ORD_CHAR=#"[^\^\.\[\$\(\)\|\*\+\?\{\\]"
 SPEC_CHAR=#"[\^\.\[\$\(\)\|\*\+\?\{\\]"
