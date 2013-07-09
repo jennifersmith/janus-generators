@@ -52,6 +52,14 @@
           ((== identifier :ANY_CHAR) (any-charo result))
           ((log "one-char-regexo: I don't have a clue what " identifier " is!") (trace-s)))))
 
+(defn plusso [main-part result]
+  (fresh [result-head result-rem]
+         (== result (lcons result-head result-rem))
+         (one-char-regexo main-part result-head)
+         (conde
+          ((== [] result-rem))
+          ((plusso main-part result-rem)))))
+
 (defn starro [main-part result]
   (conde
    ((== [] result))
@@ -65,6 +73,7 @@
          (secondo dupl-symbol duplicate-char)
          (conda
           ((== duplicate-char "*") (starro main-part result))
+          ((== duplicate-char "+") (plusso main-part result))
           ((log "duplicateo: I don't have a clue what " duplicate-char " is!") (trace-s)))))
 
 (defn simple-regexo [body result]
@@ -106,7 +115,7 @@
 (defmulti convert-char class)
 (defmethod convert-char String [v] v)
 (defmethod convert-char Number [v] (char v))
-
+(defmethod convert-char :default [v] (str "<class:" v ", " v " .. probably doesnt belong>") )
 (defn convert-to-string [s]
   (apply str  (map convert-char (flatten s))))
 
