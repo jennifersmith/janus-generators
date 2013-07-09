@@ -139,7 +139,7 @@
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
 (defmulti make-goals first)
-(defmethod make-goals :default [regex] (println "TODO: Handle " regex) (fn [x] (trace-s)))
+(defmethod make-goals :default [regex] (println "TODO: Handle " regex) (fn [& x] (trace-s)))
 (defmethod make-goals :S [[_ & body]]
   (let [sub-goals (map make-goals body)]
     (fn [result]
@@ -151,6 +151,7 @@
     #(contents-goal %)))
 
 (defmethod make-goals :SIMPLE_RE [[_ & goals]]
+  (println goals)
   (let [[main-goal dupl-goal] (map make-goals goals)]
    (fn [result]
      (if (nil? dupl-goal)
@@ -162,6 +163,15 @@
 
 (defmethod make-goals :ANY_CHAR [_]
   #(fd/in % (any-char-domain)))
+
+(defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
+  (fn starro* [main-goal result]
+    (conde
+     ((== [] result))
+     ((fresh [head tail]
+             (== result (lcons head tail))
+             (main-goal head)
+             (starro* main-goal tail))))))
 
 (defn run-goals-part-two [regex n]
   (let [regex-tree (parse regex)
