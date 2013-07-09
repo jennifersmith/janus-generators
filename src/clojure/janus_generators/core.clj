@@ -160,6 +160,9 @@
 (defmethod make-goals :ORD_CHAR [[_ the-char]]
   #(== the-char %))
 
+(defmethod make-goals :ANY_CHAR [_]
+  #(fd/in % (any-char-domain)))
+
 (defn run-goals-part-two [regex n]
   (let [regex-tree (parse regex)
         goals (make-goals regex-tree)]
