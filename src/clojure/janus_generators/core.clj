@@ -116,6 +116,7 @@
 (defmethod convert-char String [v] v)
 (defmethod convert-char Number [v] (char v))
 (defmethod convert-char :default [v] (str "<class:" v ", " v " .. probably doesnt belong>") )
+
 (defn convert-to-string [s]
   (apply str  (map convert-char (flatten s))))
 
@@ -124,8 +125,47 @@
     (run n [result]
          (regex-unify regex-tree result))))
 
+;; TODO: Are these somewhere else
+;; unifies results to a sequence with the head being unified to the first goal
+;; and so on. yes recursion
+(defn eachg [result goals]
+  (if (seq goals)
+    (fresh [head tail]
+           (== result (lcons head tail))
+           ((first goals) head)
+           (eachg tail (rest goals)))
+    (== result [])))
+
+;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
+
+(defmulti make-goals first)
+(defmethod make-goals :default [regex] (println "TODO: Handle " regex) (fn [x] (trace-s)))
+(defmethod make-goals :S [[_ & body]]
+  (let [sub-goals (map make-goals body)]
+    (fn [result]
+      (eachg result sub-goals))))
+;; a bit unneccessary - can we do something with inline in instaparse
+
+(defmethod make-goals :ONE_CHAR_RE [[_ contents]]
+  (let [contents-goal (make-goals contents)]
+    #(contents-goal %)))
+
+(defmethod make-goals :SIMPLE_RE [[_ & goals]]
+  (let [[main-goal dupl-goal] (map make-goals goals)]
+   (fn [result]
+     (if (nil? dupl-goal)
+       (main-goal result)
+       (dupl-goal main-goal result)))))
+
+(defmethod make-goals :ORD_CHAR [[_ the-char]]
+  #(== the-char %))
+
+(defn run-goals-part-two [regex n]
+  (let [regex-tree (parse regex)
+        goals (make-goals regex-tree)]
+    (run n [result] (goals result))))
+
 (defn generate-from-regex
-  "Generates a lazy sequence of strings conforming to the regex. Or at least it will." 
   [regex n]
-  (map #(convert-to-string %)
-       (run-goals regex n)))
+  (map convert-to-string
+       (run-goals-part-two regex n)))
