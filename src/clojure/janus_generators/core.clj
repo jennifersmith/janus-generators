@@ -130,6 +130,16 @@
            (eachg tail (rest goals)))
     (== result [])))
 
+;; TODO: Better way than recursion. Although it's not going to go crazy I think it might be slow
+(defn anyg [result goals]
+  (if (seq goals)
+    (conde
+     (((first goals) result))
+     ((anyg result (rest goals)))
+     )
+    fail))
+
+
 (defn starro-new [main-part result]
   (conde
    ((== [] result))
@@ -151,21 +161,28 @@
 (defmulti make-goals first)
 (defmethod make-goals :default [regex] (println "TODO: Handle " regex) (fn [& x] (trace-s)))
 (defmethod make-goals :S [[_ & body]]
-  (let [sub-goals (map make-goals body)]
+  (let [sub-branches  (map make-goals (take-nth 2 body))] ;; removes |
     (fn [result]
-      (eachg result sub-goals))))
-;; a bit unneccessary - can we do something with inline in instaparse
+      (anyg result sub-branches))))
 
+;; a bit unneccessary - can we do something with inline in instaparse
 (defmethod make-goals :ONE_CHAR_RE [[_ contents]]
   (let [contents-goal (make-goals contents)]
     #(contents-goal %)))
 
-(defmethod make-goals :SIMPLE_RE [[_ & goals]]
+ (defmethod make-goals :SIMPLE_RE [[_ & goals]]
   (let [[main-goal dupl-goal] (map make-goals goals)]
    (fn [result]
      (if (nil? dupl-goal)
        (main-goal result)
        (dupl-goal main-goal result)))))
+;; TODO: Same ish as :S
+(defmethod make-goals :RE_BRANCH
+ [[_ & body]]
+  (let [sub-goals (map make-goals body)]
+    (fn [result]
+      (eachg result sub-goals))))
+
 
 (defmethod make-goals :ORD_CHAR [[_ the-char]]
   #(== the-char %))
@@ -181,12 +198,12 @@
     #(all
      (log "Do not recognise " symbol) (trace-s))))
 
-;; todo : identical to S
-
+;; todo : identicalish to S
 (defmethod make-goals :GROUP [[ _ & body]]
   (let [sub-goals (map make-goals (rest (butlast body)))]
     (fn [result]
       (eachg result sub-goals))))
+
 
 (defn run-goals-part-two [regex n]
   (let [regex-tree (parse regex)
