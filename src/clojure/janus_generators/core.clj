@@ -60,13 +60,7 @@
           ((== [] result-rem))
           ((plusso main-part result-rem)))))
 
-(defn starro [main-part result]
-  (conde
-   ((== [] result))
-   ((fresh [result-head result-rem]
-           (== result (lcons result-head result-rem))
-           (one-char-regexo main-part result-head)
-           (starro main-part result-rem)))))
+
 
 (defn duplicateo [dupl-symbol result main-part]
   (fresh [duplicate-char]
@@ -136,6 +130,22 @@
            (eachg tail (rest goals)))
     (== result [])))
 
+(defn starro-new [main-part result]
+  (conde
+   ((== [] result))
+   ((fresh [result-head result-rem]
+           (== result (lcons result-head result-rem))
+           (main-part result-head)
+           (starro-new main-part result-rem)))))
+
+(defn plusso-new [main-part result]
+  (fresh [result-head result-rem]
+         (== result (lcons result-head result-rem))
+         (main-part result-head)
+         (conde
+          ((== [] result-rem))
+          ((plusso-new main-part result-rem)))))
+
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
 (defmulti make-goals first)
@@ -151,7 +161,6 @@
     #(contents-goal %)))
 
 (defmethod make-goals :SIMPLE_RE [[_ & goals]]
-  (println goals)
   (let [[main-goal dupl-goal] (map make-goals goals)]
    (fn [result]
      (if (nil? dupl-goal)
@@ -165,13 +174,19 @@
   #(fd/in % (any-char-domain)))
 
 (defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
-  (fn starro* [main-goal result]
-    (conde
-     ((== [] result))
-     ((fresh [head tail]
-             (== result (lcons head tail))
-             (main-goal head)
-             (starro* main-goal tail))))))
+  (case symbol
+    "*" starro-new
+    "+" plusso-new
+    :else
+    #(all
+     (log "Do not recognise " symbol) (trace-s))))
+
+;; todo : identical to S
+
+(defmethod make-goals :GROUP [[ _ & body]]
+  (let [sub-goals (map make-goals (rest (butlast body)))]
+    (fn [result]
+      (eachg result sub-goals))))
 
 (defn run-goals-part-two [regex n]
   (let [regex-tree (parse regex)
