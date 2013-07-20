@@ -17,7 +17,7 @@
            (generate-from-regex ~regex-str 10) => (all-match-regex? ~regex))))
 
 (tabular "Regex generation"
-         (fact 
+         (fact
           (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
          ?r
          #"A"
@@ -33,3 +33,16 @@
          #"[A-Z1-5]"
          #"[^A-Z1-1]"
          #"[ADEFG2]")
+
+(tabular "Ignoring group constructs"
+         (fact
+          (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+         ?r
+         #"ABC(?<foo>D)")
+
+(comment
+  (tabular "More Complicated Regex generation"
+           (fact
+             (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+           ?r
+           #"(?<user>(?:(?:[^ \t\(\)\<\>@,;\:\\\"\.\[\]\r\n]+)|(?:\"(?:(?:[^\"\\\r\n])|(?:\\.))*\"))(?:\.(?:(?:[^ \t\(\)\<\>@,;\:\\\"\.\[\]\r\n]+)|(?:\"(?:(?:[^\"\\\r\n])|(?:\\.))*\")))*)@(?<domain>(?:(?:[^ \t\(\)\<\>@,;\:\\\"\.\[\]\r\n]+)|(?:\[(?:(?:[^\[\]\\\r\n])|(?:\\.))*\]))(?:\.(?:(?:[^ \t\(\)\<\>@,;\:\\\"\.\[\]\r\n]+)|(?:\[(?:(?:[^\[\]\\\r\n])|(?:\\.))*\])))*)"))
