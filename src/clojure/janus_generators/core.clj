@@ -61,14 +61,7 @@
           ((plusso main-part result-rem)))))
 
 
-
-(defn duplicateo [dupl-symbol result main-part]
-  (fresh [duplicate-char]
-         (secondo dupl-symbol duplicate-char)
-         (conda
-          ((== duplicate-char "*") (starro main-part result))
-          ((== duplicate-char "+") (plusso main-part result))
-          ((log "duplicateo: I don't have a clue what " duplicate-char " is!") (trace-s)))))
+(defn duplicateo [& foo])
 
 (defn simple-regexo [body result]
   (fresh [identifier rem]
@@ -156,6 +149,16 @@
           ((== [] result-rem))
           ((plusso-new main-part result-rem)))))
 
+;; Constructs domains based on regex tree
+(defmulti make-domains first)
+(defmethod make-domains :RANGE_EXPRESSION [[_  [_ from] _ [_ to]]]
+  ;; constrains the result to be in the range from/to
+
+  (fd/interval (int (first from)) (int (first to))))
+
+(defmethod make-domains :MATCHING_LIST [[_ & expressions]]
+  (let [subterms (map make-domains expressions) ] subterms))
+
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
 (defmulti make-goals first)
@@ -176,6 +179,14 @@
      (if (nil? dupl-goal)
        (main-goal result)
        (dupl-goal main-goal result)))))
+
+
+(defmethod make-goals :BRACKET_EXPRESSION [[_ inner-expression]]
+  (let [domains (make-domains inner-expression)
+        final-domain (apply fd/multi-interval domains)]
+    (fn [result]
+      (fd/in result final-domain))))
+
 ;; TODO: Same ish as :S
 (defmethod make-goals :RE_BRANCH
  [[_ & body]]
