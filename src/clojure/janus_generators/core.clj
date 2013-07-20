@@ -151,6 +151,12 @@
 
 ;; Constructs domains based on regex tree
 (defmulti make-domains first)
+
+  ;; constrains the result to be in the range from/to the single expr... has to stay as an interval rather than = 'cos they are combined into multiinterval later with other potentially ranged expressions like [A-Z5] is range A-Z or a 5
+(defmethod make-domains :SINGLE_EXPRESSION [[_  character]]
+  (let [character-value (int (first character))]
+    (fd/interval character-value character-value)))
+
 (defmethod make-domains :RANGE_EXPRESSION [[_  [_ from] _ [_ to]]]
   ;; constrains the result to be in the range from/to
   (fd/interval (int (first from)) (int (first to))))
@@ -159,8 +165,9 @@
   (let [matching-domain (make-domains matching-list) ]
     (fd/difference (any-char-domain) matching-domain)))
 
+;; Style fix: [AAAAB] is valid but I want to treat as [A]
 (defmethod make-domains :MATCHING_LIST [[_ & expressions :as tmp]]
-  (let [subterms (map make-domains expressions) ]
+  (let [subterms (map make-domains (distinct expressions)) ]
     (apply fd/multi-interval subterms)))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
