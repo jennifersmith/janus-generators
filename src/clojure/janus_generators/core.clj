@@ -5,6 +5,16 @@
             [clojure.core.logic :refer :all]
             [clojure.core.logic.fd :as fd]))
 
+;; something dodgy goes on if we try do (str \n)... argh
+;; I dont fully understand. TODO: Read up what the chuff is going on with escaped chars
+
+(def int-escape-string
+  (zipmap (map int (keys char-escape-string))
+          (vals char-escape-string)))
+
+(def escape-string-int
+  (apply zipmap ((juxt vals keys) int-escape-string)))
+
 (defn load-parser []
   (insta/parser
    (slurp "grammars/basic")
@@ -100,9 +110,13 @@
 
 
 (defmulti convert-char class)
-(defmethod convert-char String [v] v)
-(defmethod convert-char Number [v] (char v))
-(defmethod convert-char :default [v] (str "<class:" v ", " v " .. probably doesnt belong>") )
+;;(defmethod convert-char String [v] (or (char-escape-string v) v))
+
+
+(defmethod convert-char Number [v]
+  (char v))
+
+(defmethod convert-char :default [v] (str "<class:" (class v) ", " v " .. probably doesnt belong>") )
 
 (defn convert-to-string [s]
   (apply str  (map convert-char (flatten s))))
@@ -153,13 +167,22 @@
 (defmulti make-domains first)
 
   ;; constrains the result to be in the range from/to the single expr... has to stay as an interval rather than = 'cos they are combined into multiinterval later with other potentially ranged expressions like [A-Z5] is range A-Z or a 5
+
+(defn character-to-int [[char-type value]]
+  (case char-type
+        :BASIC_BE_CHAR
+        (int (first value))
+        :ESCAPED_BE_CHAR
+        (or (escape-string-int value)
+            (int (last value)))))
+
 (defmethod make-domains :SINGLE_EXPRESSION [[_  character]]
-  (let [character-value (int (first character))]
+  (let [character-value (character-to-int character)]
     (fd/interval character-value character-value)))
 
 (defmethod make-domains :RANGE_EXPRESSION [[_  [_ from] _ [_ to]]]
   ;; constrains the result to be in the range from/to
-  (fd/interval (int (first from)) (int (first to))))
+  (fd/interval (character-to-int from) (character-to-int to)))
 
 (defmethod make-domains :NON_MATCHING_LIST [[_ _ matching-list]]
   (let [matching-domain (make-domains matching-list) ]
@@ -204,9 +227,15 @@
     (fn [result]
       (eachg result sub-goals))))
 
-
+;; todo :Better dispatch
 (defmethod make-goals :ORD_CHAR [[_ the-char]]
-  #(== the-char %))
+  #(==  (int (last the-char)) %))
+
+(defmethod make-goals :ESCAPED_CHAR [[_ the-char]]
+  #(== (escape-string-int the-char) %))
+
+(defmethod make-goals :ESCAPED_SPEC_CHAR [[_ the-char]]
+  #(== % (int (last the-char))))
 
 (defmethod make-goals :ANY_CHAR [_]
   #(fd/in % (any-char-domain)))

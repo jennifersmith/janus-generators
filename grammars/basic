@@ -1,13 +1,14 @@
 S = RE_BRANCH ("|" RE_BRANCH)*
 RE_BRANCH = SIMPLE_RE+
 SIMPLE_RE =  (ONE_CHAR_RE | GROUP) DUPL_SYMBOL?
-ONE_CHAR_RE = ORD_CHAR | ANY_CHAR | BRACKET_EXPRESSION
+ONE_CHAR_RE = ORD_CHAR | ESCAPED_SPEC_CHAR | ESCAPED_CHAR | ANY_CHAR | BRACKET_EXPRESSION
 GROUP = "(" < GROUP_NAME? > S ")"
 GROUP_NAME = #"\?<\w+>"
 DUPL_SYMBOL = "*" | "+"
 ANY_CHAR = "."
 ORD_CHAR=#"[^\^\.\[\$\(\)\|\*\+\?\{\\]"
-SPEC_CHAR=#"[\^\.\[\$\(\)\|\*\+\?\{\\]"
+ESCAPED_SPEC_CHAR=<"\\"> #"[\^\.\[\$\(\)\|\*\+\?\{\\]"
+ESCAPED_CHAR=#"\\[\\\]btnfr\"\']"
 
 (* Bracket expressions. Only supporting single chars and ranges *)
 
@@ -15,5 +16,7 @@ BRACKET_EXPRESSION= <"["> (MATCHING_LIST | NON_MATCHING_LIST) <"]">
 NON_MATCHING_LIST= "^" MATCHING_LIST
 MATCHING_LIST=  (RANGE_EXPRESSION | SINGLE_EXPRESSION)+ TRAILING_HYPHEN?
 RANGE_EXPRESSION= SINGLE_EXPRESSION "-" SINGLE_EXPRESSION
-SINGLE_EXPRESSION=#"[^\]-]|\[\]]" (* Basically allowing some invalid input like [^]  *)
+SINGLE_EXPRESSION=  ESCAPED_BE_CHAR | BASIC_BE_CHAR
+BASIC_BE_CHAR= #"[^\-\]\\]"
+ESCAPED_BE_CHAR= #"\\[\\\]btnfr\"\']"
 TRAILING_HYPHEN="-"

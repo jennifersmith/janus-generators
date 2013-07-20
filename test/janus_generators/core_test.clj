@@ -34,11 +34,15 @@
          #"[^A-Z1-1]"
          #"[ADEFG2]")
 
-(tabular "Ignoring group constructs"
+(tabular "More complicated stuff"
          (fact
           (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
          ?r
-         #"ABC(?<foo>D)")
+         #"ABC(?<foo>D)"
+         #"[\]]"
+         #"[\n]"
+         #"\n"
+         #"\^")
 
 (comment
   (tabular "More Complicated Regex generation"
