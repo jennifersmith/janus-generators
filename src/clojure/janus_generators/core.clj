@@ -153,11 +153,15 @@
 (defmulti make-domains first)
 (defmethod make-domains :RANGE_EXPRESSION [[_  [_ from] _ [_ to]]]
   ;; constrains the result to be in the range from/to
-
   (fd/interval (int (first from)) (int (first to))))
 
-(defmethod make-domains :MATCHING_LIST [[_ & expressions]]
-  (let [subterms (map make-domains expressions) ] subterms))
+(defmethod make-domains :NON_MATCHING_LIST [[_ _ matching-list]]
+  (let [matching-domain (make-domains matching-list) ]
+    (fd/difference (any-char-domain) matching-domain)))
+
+(defmethod make-domains :MATCHING_LIST [[_ & expressions :as tmp]]
+  (let [subterms (map make-domains expressions) ]
+    (apply fd/multi-interval subterms)))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
@@ -182,10 +186,9 @@
 
 
 (defmethod make-goals :BRACKET_EXPRESSION [[_ inner-expression]]
-  (let [domains (make-domains inner-expression)
-        final-domain (apply fd/multi-interval domains)]
+  (let [domain (make-domains inner-expression)]
     (fn [result]
-      (fd/in result final-domain))))
+      (fd/in result domain))))
 
 ;; TODO: Same ish as :S
 (defmethod make-goals :RE_BRANCH
