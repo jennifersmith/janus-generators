@@ -3,17 +3,7 @@
   (:import [clojure.core.logic.protocols])
   (:require [instaparse.core :as insta]
             [clojure.core.logic :refer :all]
-            [clojure.core.logic.fd :as fd]))
-
-;; something dodgy goes on if we try do (str \n)... argh
-;; I dont fully understand. TODO: Read up what the chuff is going on with escaped chars
-
-(def int-escape-string
-  (zipmap (map int (keys char-escape-string))
-          (vals char-escape-string)))
-
-(def escape-string-int
-  (apply zipmap ((juxt vals keys) int-escape-string)))
+            [janus-generators.character-domains :refer :all]))
 
 (defn load-parser []
   (insta/parser
@@ -22,91 +12,6 @@
 
 ;; oooooops
 (def parse (load-parser))
-
-(declare regex-chunk)
-
-;; it's starting to sound like an italian meal in here
-(defn secondo [xs x]
-  (fresh [head tail]
-         (== xs (lcons head tail))
-         (firsto tail x)))
-
-(defn singlo [xs x]
-  (firsto xs x)
-  (== xs (lcons x [])))
-
-(defn pairo [xy x y]
-  (fresh [tail]
-         (== xy (lcons x tail))
-         (singlo tail y)))
-
-(defn ord-charo [body result]
-  (fresh [thechar]
-         (firsto body thechar)
-         (== thechar result)))
-
-(defn any-char-domain []
-  (fd/interval 33 127))
-
-(defn any-charo [result]
-  (fd/in result (any-char-domain))) ;; visible char range
-
-
-;; OK So I want a conda right because once it has succeeded down one of the alternatives it probly doesnt want to succeed down another... probably. Unless i was generating regexes. Which is not really want I want to do. Though that would be awesome
-
-(defn one-char-regexo [body result]
-  (fresh [identifier rem]
-         (== body (lcons identifier rem))
-         (conda
-          ((== identifier :ORD_CHAR) (ord-charo rem result))
-          ((== identifier :ANY_CHAR) (any-charo result))
-          ((log "one-char-regexo: I don't have a clue what " identifier " is!") (trace-s)))))
-
-(defn plusso [main-part result]
-  (fresh [result-head result-rem]
-         (== result (lcons result-head result-rem))
-         (one-char-regexo main-part result-head)
-         (conde
-          ((== [] result-rem))
-          ((plusso main-part result-rem)))))
-
-
-(defn duplicateo [& foo])
-
-(defn simple-regexo [body result]
-  (fresh [identifier rem]
-         (== body (lcons identifier rem))
-         (fresh [main-part dupl-symbol main-result]
-                (conda
-                 ((singlo body main-part) 
-                  (fresh [main-part-wtf]
-                         (secondo main-part main-part-wtf)
-                         (one-char-regexo main-part-wtf result)
-                         ))
-                 (
-                  (pairo body main-part dupl-symbol
-                         )
-                  (fresh [main-part-wtf ]
-                         (secondo main-part main-part-wtf)
-                         (one-char-regexo main-part-wtf main-result)
-                         (duplicateo dupl-symbol result main-part-wtf)))) ;; hahah i am just taking piss now
-)))
-
-(defn regex-chunk [regex result]
-  (fresh [identifier body chunk]
-         (== (lcons identifier body) regex)
-         (conda
-          ((== identifier :SIMPLE_RE) (simple-regexo body result)) 
-          ((log "I don't have a clue what " identifier " is!") (trace-s)))))
-
-(defn regex-unify [regex result]
-  (fresh [head tail resulthead resulttail]
-         (== regex (lcons head tail))
-         (== result (lcons resulthead resulttail))
-         (regex-chunk head resulthead)
-         (conde
-          ((== [] tail) (== [] resulttail))
-          ((regex-unify tail resulttail)))))
 
 
 (defmulti convert-char class)
@@ -121,10 +26,6 @@
 (defn convert-to-string [s]
   (apply str  (map convert-char (flatten s))))
 
-(defn run-goals [regex n]
-  (let [[_ & regex-tree] (parse regex)]
-    (run n [result]
-         (regex-unify regex-tree result))))
 
 ;; TODO: Are these somewhere else
 ;; unifies results to a sequence with the head being unified to the first goal
@@ -163,35 +64,6 @@
           ((== [] result-rem))
           ((plusso-new main-part result-rem)))))
 
-;; Constructs domains based on regex tree
-(defmulti make-domains first)
-
-  ;; constrains the result to be in the range from/to the single expr... has to stay as an interval rather than = 'cos they are combined into multiinterval later with other potentially ranged expressions like [A-Z5] is range A-Z or a 5
-
-(defn character-to-int [[char-type value]]
-  (case char-type
-        :BASIC_BE_CHAR
-        (int (first value))
-        :ESCAPED_BE_CHAR
-        (or (escape-string-int value)
-            (int (last value)))))
-
-(defmethod make-domains :SINGLE_EXPRESSION [[_  character]]
-  (let [character-value (character-to-int character)]
-    (fd/interval character-value character-value)))
-
-(defmethod make-domains :RANGE_EXPRESSION [[_  [_ from] _ [_ to]]]
-  ;; constrains the result to be in the range from/to
-  (fd/interval (character-to-int from) (character-to-int to)))
-
-(defmethod make-domains :NON_MATCHING_LIST [[_ _ matching-list]]
-  (let [matching-domain (make-domains matching-list) ]
-    (fd/difference (any-char-domain) matching-domain)))
-
-;; Style fix: [AAAAB] is valid but I want to treat as [A]
-(defmethod make-domains :MATCHING_LIST [[_ & expressions :as tmp]]
-  (let [subterms (map make-domains (distinct expressions)) ]
-    (apply fd/multi-interval subterms)))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
@@ -216,9 +88,7 @@
 
 
 (defmethod make-goals :BRACKET_EXPRESSION [[_ inner-expression]]
-  (let [domain (make-domains inner-expression)]
-    (fn [result]
-      (fd/in result domain))))
+  (make-character-constraint inner-expression))
 
 ;; TODO: Same ish as :S
 (defmethod make-goals :RE_BRANCH
@@ -238,7 +108,7 @@
   #(== % (int (last the-char))))
 
 (defmethod make-goals :ANY_CHAR [_]
-  #(fd/in % (any-char-domain)))
+  (constrain-to-char))
 
 (defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
   (case symbol
