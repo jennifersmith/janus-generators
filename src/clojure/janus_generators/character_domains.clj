@@ -76,11 +76,11 @@
 (defmethod parse-chunk :MATCHING_LIST [[_ [_ & range-expressions]]]
   {:type :matching :range (map parse-chunk range-expressions)})
 
-;; Style fix: [AAAAB] is valid but I want to treat as [A]
 
 ;; TODO: Parse namespace with parsing stuff in
 ;; Takes in the [:BRACKET_EXPRESSION part
 (defn quick-n-dirty-transform [tree]
+
   (parse-chunk tree))
 
 (def make-character-constraint
