@@ -1,17 +1,9 @@
 (ns janus-generators.core
   (:refer-clojure :exclude [==])
   (:import [clojure.core.logic.protocols])
-  (:require [instaparse.core :as insta]
+  (:require [janus-generators.parse :refer :all]
             [clojure.core.logic :refer :all]
             [janus-generators.character-domains :refer :all]))
-
-(defn load-parser []
-  (insta/parser
-   (slurp "grammars/basic")
-   :start :S))
-
-;; oooooops
-(def parse (load-parser))
 
 
 (defmulti convert-char class)
