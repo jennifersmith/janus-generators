@@ -28,7 +28,8 @@
                     :RANGE_EXPRESSIONS vector
                     :RANGE_EXPRESSION (fn [first _ last] [first last])
                     :BASIC_BE_CHAR last
-                    :MATCHING_LIST (partial vector :matching)})
+                    :MATCHING_LIST (partial vector :matching)
+                    :NON_MATCHING_LIST (partial vector :non-matching)})
 
 (comment
 

@@ -67,9 +67,8 @@
       (anyg result sub-branches))))
 
 ;; a bit unneccessary - can we do something with inline in instaparse
-(defmethod make-goals :ONE_CHAR_RE [[_ contents]]
-  (let [contents-goal (make-goals contents)]
-    #(contents-goal %)))
+(defmethod make-goals :ONE_CHAR_RE [[_ ranges]]
+  (constrain-character ranges))
 
  (defmethod make-goals :SIMPLE_RE [[_ & goals]]
   (let [[main-goal dupl-goal] (map make-goals goals)]
@@ -79,28 +78,12 @@
        (dupl-goal main-goal result)))))
 
 
-(defmethod make-goals :BRACKET_EXPRESSION [[_ inner-expression]]
-  (make-character-constraint inner-expression))
-
 ;; TODO: Same ish as :S
 (defmethod make-goals :RE_BRANCH
  [[_ & body]]
   (let [sub-goals (map make-goals body)]
     (fn [result]
       (eachg result sub-goals))))
-
-;; todo :Better dispatch
-(defmethod make-goals :ORD_CHAR [[_ the-char]]
-  #(==  (int (last the-char)) %))
-
-(defmethod make-goals :ESCAPED_CHAR [[_ the-char]]
-  #(== (escape-string-int the-char) %))
-
-(defmethod make-goals :ESCAPED_SPEC_CHAR [[_ the-char]]
-  #(== % (int (last the-char))))
-
-(defmethod make-goals :ANY_CHAR [_]
-  (constrain-to-char))
 
 (defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
   (case symbol
@@ -118,7 +101,7 @@
 
 
 (defn run-goals-part-two [regex n]
-  (let [regex-tree (parse regex)
+  (let [regex-tree (parse-regex regex)
         goals (make-goals regex-tree)]
     (run n [result] (goals result))))
 

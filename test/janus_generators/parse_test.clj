@@ -11,6 +11,7 @@
            ?input  ?expected
            "A"     \A
            #"[\]]" [:matching [\]]]
+           #"[^ABC]" [:non-matching [\A \B \C]]
            #"[\n]" [:matching [\newline]]
            #"[\.]" [:matching  [\.]]
            #"[1A-Z]" [:matching [\1 [\A \Z]]]
