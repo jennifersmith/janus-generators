@@ -3,21 +3,8 @@
   (:import [clojure.core.logic.protocols])
   (:require [janus-generators.parse :refer :all]
             [clojure.core.logic :refer :all]
-            [janus-generators.character-domains :refer :all]))
-
-
-(defmulti convert-char class)
-;;(defmethod convert-char String [v] (or (char-escape-string v) v))
-
-
-(defmethod convert-char Number [v]
-  (char v))
-
-(defmethod convert-char :default [v] (str "<class:" (class v) ", " v " .. probably doesnt belong>") )
-
-(defn convert-to-string [s]
-  (apply str  (map convert-char (flatten s))))
-
+            [janus-generators.character-domains :refer :all]
+            [janus-generators.output :refer :all]))
 
 ;; TODO: Are these somewhere else
 ;; unifies results to a sequence with the head being unified to the first goal
