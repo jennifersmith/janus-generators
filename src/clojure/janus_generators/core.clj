@@ -1,6 +1,6 @@
 (ns janus-generators.core
   (:refer-clojure :exclude [==])
-  (:import [clojure.core.logic.protocols])
+;;  (:import [clojure.core.logic.protocols])
   (:require [janus-generators.parse :refer :all]
             [clojure.core.logic :refer :all]
             [janus-generators.character-domains :refer :all]
@@ -27,21 +27,21 @@
     fail))
 
 
-(defn starro-new [main-part result]
+(defn starro [main-part result]
   (conde
    ((== [] result))
    ((fresh [result-head result-rem]
            (== result (lcons result-head result-rem))
            (main-part result-head)
-           (starro-new main-part result-rem)))))
+           (starro main-part result-rem)))))
 
-(defn plusso-new [main-part result]
+(defn plusso [main-part result]
   (fresh [result-head result-rem]
          (== result (lcons result-head result-rem))
          (main-part result-head)
          (conde
           ((== [] result-rem))
-          ((plusso-new main-part result-rem)))))
+          ((plusso main-part result-rem)))))
 
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
@@ -74,8 +74,8 @@
 
 (defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
   (case symbol
-    "*" starro-new
-    "+" plusso-new
+    "*" starro
+    "+" plusso
     :else
     #(all
      (log "Do not recognise " symbol) (trace-s))))
