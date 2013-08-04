@@ -26,39 +26,17 @@
      )
     fail))
 
-;; we are recursing on reps (non-rel) meaning any long expansion of * could (possibly) blow the stack
-;; .* could be a bit of an arse!
+;; we are recursing on reps (non-rel) meaning any long expansion of * could (possibly) blow the stack : not actually sure as have not made it do so
 
-;; assume have already got one char, so decrement the lower and upper if not 0 or *
-;; Actually not doing any deccing just a case statement until I figure out reps properly
-
-(defn dec-reps [[from to :as reps]]
-   (case reps
-    [0 :*] [0 :*]
-    [1 :*] [0 :*]
-    [1 1] [0 0]))
-
-;; dodgy because unifying on reps which is always bound. Probably could just use if.
-
-(defn reps-goal [ [lower upper :as reps] main result ]
-  (conde
-   ((== [1 1] reps) (main result))
-   ((== [0 0] reps) (== result []))
-   ((== [1 :*] reps)
-      (fresh [result-head result-rem]
-         (== result (lcons result-head result-rem))
-         (main result-head)
-         (conde
-          ((== [] result-rem))
-          ((reps-goal (dec-reps reps) main result-rem )))))
-   ((== [0 :*] reps)
-      (conde
-       ((== [] result))
-       ((fresh [result-head result-rem]
-               (== result (lcons result-head result-rem))
-               (main result-head)
-               (reps-goal (dec-reps reps) main result-rem )))))))
-
+(defne repeato [reps main result]
+  ([[_ 1] main [head . []]]
+     (main head))
+  ;; anything with min 0 could be empty
+  ([[0 _] _ result] (== result []))
+  ;; anything with max * could be recursion
+  ([[lower :*] main [result-head . result-tail]]
+     (main result-head)
+     (repeato [0 :*] main result-tail)))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
@@ -75,7 +53,7 @@
  (defmethod make-goals :SIMPLE_RE [[_ body reps]]
     (let [main-goal (make-goals body)]
       (fn [result]
-        (reps-goal reps main-goal result))))
+        (repeato reps main-goal result))))
 
 
 ;; TODO: Same ish as :S
