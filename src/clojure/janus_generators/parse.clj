@@ -19,7 +19,8 @@
 
 (def get-reps
   {"+" [1 :*]
-   "*" [0 :*]})
+   "*" [0 :*]
+   "?" [0 1]})
 
 (defn transform-simple-re
   ([body]

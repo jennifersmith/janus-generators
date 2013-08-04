@@ -37,7 +37,8 @@
          #"[^A-Z]"
          #"[A-Z1-5]"
          #"[^A-Z1-1]"
-         #"[ADEFG2]")
+         #"[ADEFG2]"
+         #"Ab?C")
 
 (tabular "More complicated stuff"
          (fact

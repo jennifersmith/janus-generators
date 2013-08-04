@@ -39,4 +39,5 @@
          ?input ?character ?expected-reps
          "A"    \A         [1 1]
          "A+"   \A         [1 :*]
-         "A*"   \A         [0 :*])
+         "A*"   \A         [0 :*]
+         "A?"   \A         [0 1])
