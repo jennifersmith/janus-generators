@@ -17,6 +17,16 @@
           (keys char-escape-string)))
 
 
+(def get-reps
+  {"+" [1 :*]
+   "*" [0 :*]})
+
+(defn transform-simple-re
+  ([body]
+      [:SIMPLE_RE body [1 1]])
+  ([body dupl-symbol]
+     [:SIMPLE_RE body (get-reps dupl-symbol)]))
+
 (def transform-map {
                     :ANY_CHAR (constantly :any-char)
                     :ORD_CHAR last
@@ -28,8 +38,10 @@
                     :RANGE_EXPRESSIONS vector
                     :RANGE_EXPRESSION (fn [first _ last] [first last])
                     :BASIC_BE_CHAR last
+                    :DUPL_SYMBOL identity
                     :MATCHING_LIST (partial vector :matching)
-                    :NON_MATCHING_LIST (partial vector :non-matching)})
+                    :NON_MATCHING_LIST (partial vector :non-matching)
+                    :SIMPLE_RE transform-simple-re})
 
 (comment
 

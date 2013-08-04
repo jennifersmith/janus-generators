@@ -3,11 +3,15 @@
         janus-generators.core
         janus-generators.parse))
 
-(defn simple-re-wrapper [body]
-  [:S [:RE_BRANCH [:SIMPLE_RE [:ONE_CHAR_RE body]]]])
+(defn simple-re-wrapper [contents reps]
+  [:S [:RE_BRANCH [:SIMPLE_RE contents reps]]])
+
+(defn one-char-re-wrapper [body]
+  (simple-re-wrapper [:ONE_CHAR_RE body] [1 1]))
+
 
 (tabular "Collapses down the various sorts of one-char regex into characters"
-         (fact (parse-regex ?input) => (simple-re-wrapper ?expected))
+         (fact (parse-regex ?input) => (one-char-re-wrapper ?expected))
            ?input  ?expected
            "A"     \A
            #"[\]]" [:matching [\]]]
@@ -18,3 +22,11 @@
            #"\n"   \newline
            #"\^"   \^
            #"."    :any-char)
+
+(tabular "Correctly computes min max repetitions for supported dupe forms"
+         (fact (parse-regex ?input) => 
+           (simple-re-wrapper [:ONE_CHAR_RE ?character] ?expected-reps))
+         ?input ?character ?expected-reps
+         "A"    \A         [1 1]
+         "A+"   \A         [1 :*]
+         "A*"   \A         [0 :*])

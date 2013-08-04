@@ -43,26 +43,34 @@
           ((== [] result-rem))
           ((plusso main-part result-rem)))))
 
+;; TODO: DOdgy territory
+;; (def foo (parse-regex "A*"))
+;; (def bar ((comp second second) foo))
+
+(defn make-reps-goal [reps]
+   (case reps
+    [0 :*] starro
+    [1 :*] plusso
+    [1 1] #(%1 %2) ;; applies main goal to result TEMP!
+))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
 (defmulti make-goals first)
-(defmethod make-goals :default [regex] (println "TODO: Handle " regex) (fn [& x] (trace-s)))
+
 (defmethod make-goals :S [[_ & body]]
   (let [sub-branches  (map make-goals (take-nth 2 body))] ;; removes |
     (fn [result]
       (anyg result sub-branches))))
 
-;; a bit unneccessary - can we do something with inline in instaparse
 (defmethod make-goals :ONE_CHAR_RE [[_ ranges]]
   (constrain-character ranges))
 
- (defmethod make-goals :SIMPLE_RE [[_ & goals]]
-  (let [[main-goal dupl-goal] (map make-goals goals)]
-   (fn [result]
-     (if (nil? dupl-goal)
-       (main-goal result)
-       (dupl-goal main-goal result)))))
+ (defmethod make-goals :SIMPLE_RE [[_ body reps]]
+    (let [main-goal (make-goals body)
+          reps-goal (make-reps-goal reps)]
+      (fn [result]
+        (reps-goal main-goal result))))
 
 
 ;; TODO: Same ish as :S
@@ -73,12 +81,7 @@
       (eachg result sub-goals))))
 
 (defmethod make-goals :DUPL_SYMBOL [[ _ symbol]]
-  (case symbol
-    "*" starro
-    "+" plusso
-    :else
-    #(all
-     (log "Do not recognise " symbol) (trace-s))))
+)
 
 ;; todo : identicalish to S
 (defmethod make-goals :GROUP [[ _ & body]]
