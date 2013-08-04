@@ -53,5 +53,12 @@
   (any-character-constraint) =>
   (fd/multi-interval 9 32 (fd/interval 33 127)))
 
+(fact "Alphanum constraints"
+  (alphanum-constraint) =>
+  (fd/multi-interval (fd/interval 48 57)
+                     (fd/interval (int \A) (int \Z))
+                     95
+                     (fd/interval (int \a) (int \z)) ))
+
 ;; TODO : dont test disbatch of the various representations of single char/range etc.\
 ;; Tested thru core tests right now which test the whole lot

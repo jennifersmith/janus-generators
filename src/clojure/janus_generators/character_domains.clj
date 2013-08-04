@@ -17,6 +17,12 @@
 (defn any-character-constraint []
   (fd/multi-interval 9 32 (fd/interval 33 127)))
 
+(defn alphanum-constraint []
+  (fd/multi-interval (fd/interval 48 57)
+                     (fd/interval (int \A) (int \Z))
+                     95
+                     (fd/interval (int \a) (int \z))))
+
 (defn make-domain [range]
   (let [subterms (map range-to-domain (sort-by lowest-part (distinct range)))]
     (apply fd/multi-interval (fd/normalize-intervals subterms))))
@@ -39,6 +45,7 @@
   (cond
    (char? expression)  (constant-character-constraint expression)
    (= :any-char expression) (any-character-constraint)
+   (= :alphanumeric expression) (any-character-constraint)
    :else (ranges-to-domain expression)))
 
 (defn constrain-character [expression]

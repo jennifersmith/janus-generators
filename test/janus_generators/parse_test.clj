@@ -21,7 +21,10 @@
            #"[1A-Z]" [:matching [\1 [\A \Z]]]
            #"\n"   \newline
            #"\^"   \^
-           #"."    :any-char)
+           #"."    :any-char
+           #"\w"   :alphanumeric)
+
+
 (fact "Collapses down group into :S"
   (fact (parse-regex "(A|B)") => [:S 
                                [:RE_BRANCH

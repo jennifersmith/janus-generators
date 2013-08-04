@@ -28,9 +28,13 @@
   ([body dupl-symbol]
      [:SIMPLE_RE body (get-reps dupl-symbol)]))
 
+(def code->charclass
+  {"w" :alphanumeric})
+
 (def transform-map {
                     :ANY_CHAR (constantly :any-char)
                     :ORD_CHAR last
+                    :CHAR_CLASS code->charclass
                     :ESCAPED_SPEC_CHAR last
                     :ESCAPED_CHAR #(escaped-string->char % (last %))
                     :ESCAPED_BE_CHAR #(escaped-string->char % (last %))
@@ -44,7 +48,7 @@
                     :NON_MATCHING_LIST (partial vector :non-matching)
                     :SIMPLE_RE transform-simple-re
                     :GROUP identity})
-
+ 
 (comment
 
 (defn character-to-int [[char-type value]]
