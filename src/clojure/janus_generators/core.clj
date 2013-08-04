@@ -26,39 +26,33 @@
      )
     fail))
 
-;; we are recursing on reps (non-rel) meaning any long expansion of * could (possibly) blow the stack
-;; .* could be a bit of an arse!
 
-;; assume have already got one char, so decrement the lower and upper if not 0 or *
-;; Actually not doing any deccing just a case statement until I figure out reps properly
-
-(defn dec-reps [[from to :as reps]]
-   (case reps
-    [0 :*] [0 :*]
-    [1 :*] [0 :*]
-    [1 1] [0 0]))
-
-;; dodgy because unifying on reps which is always bound. Probably could just use if.
-
-(defn reps-goal [ [lower upper :as reps] main result ]
+(defn starro [main-part result]
   (conde
-   ((== [1 1] reps) (main result))
-   ((== [0 0] reps) (== result []))
-   ((== [1 :*] reps)
-      (fresh [result-head result-rem]
+   ((== [] result))
+   ((fresh [result-head result-rem]
+           (== result (lcons result-head result-rem))
+           (main-part result-head)
+           (starro main-part result-rem)))))
+
+(defn plusso [main-part result]
+  (fresh [result-head result-rem]
          (== result (lcons result-head result-rem))
-         (main result-head)
+         (main-part result-head)
          (conde
           ((== [] result-rem))
-          ((reps-goal (dec-reps reps) main result-rem )))))
-   ((== [0 :*] reps)
-      (conde
-       ((== [] result))
-       ((fresh [result-head result-rem]
-               (== result (lcons result-head result-rem))
-               (main result-head)
-               (reps-goal (dec-reps reps) main result-rem )))))))
+          ((plusso main-part result-rem)))))
 
+;; TODO: DOdgy territory
+;; (def foo (parse-regex "A*"))
+;; (def bar ((comp second second) foo))
+
+(defn make-reps-goal [reps]
+   (case reps
+    [0 :*] starro
+    [1 :*] plusso
+    [1 1] #(%1 %2) ;; applies main goal to result TEMP!
+))
 
 ;;Constructs goals based on relationship... so rel is not unifiable but hopefully cleaner
 
@@ -73,9 +67,10 @@
   (constrain-character ranges))
 
  (defmethod make-goals :SIMPLE_RE [[_ body reps]]
-    (let [main-goal (make-goals body)]
+    (let [main-goal (make-goals body)
+          reps-goal (make-reps-goal reps)]
       (fn [result]
-        (reps-goal reps main-goal result))))
+        (reps-goal main-goal result))))
 
 
 ;; TODO: Same ish as :S
