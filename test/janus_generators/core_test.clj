@@ -2,12 +2,17 @@
   (:use midje.sweet
         janus-generators.core))
 
+;; really do I have to do this?
+
+(def not-empty? (complement empty?))
 
 (defn matching-regex? [r]
   (chatty-checker [actual] (re-matches r actual)))
 
 (defn all-match-regex? [r]
-  (has every? (matching-regex? r)))
+  (every-checker
+   not-empty?
+   (has every? (matching-regex? r))))
 
 ;; better way?
 (defmacro regex-generates-fact [regex]
