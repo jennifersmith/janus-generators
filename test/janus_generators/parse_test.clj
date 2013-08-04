@@ -22,6 +22,16 @@
            #"\n"   \newline
            #"\^"   \^
            #"."    :any-char)
+(fact "Collapses down group into :S"
+  (fact (parse-regex "(A|B)") => [:S 
+                               [:RE_BRANCH
+                                [:SIMPLE_RE
+                                 [:S
+                                  [:RE_BRANCH
+                                   [:SIMPLE_RE [:ONE_CHAR_RE \A] [1 1]]]
+                                  [:RE_BRANCH
+                                   [:SIMPLE_RE [:ONE_CHAR_RE \B] [1 1]]]] [1 1]]]])
+         )
 
 (tabular "Correctly computes min max repetitions for supported dupe forms"
          (fact (parse-regex ?input) => 

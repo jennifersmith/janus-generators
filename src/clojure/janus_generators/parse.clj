@@ -41,7 +41,8 @@
                     :DUPL_SYMBOL identity
                     :MATCHING_LIST (partial vector :matching)
                     :NON_MATCHING_LIST (partial vector :non-matching)
-                    :SIMPLE_RE transform-simple-re})
+                    :SIMPLE_RE transform-simple-re
+                    :GROUP identity})
 
 (comment
 
