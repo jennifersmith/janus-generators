@@ -34,7 +34,8 @@
         goals (make-goals regex-tree)]
     (run n [result] (goals result))))
 
-(defn generate-from-regex
+(defn re-generate
   [regex n]
   (map convert-to-string
        (run-goals-part-two regex n)))
+

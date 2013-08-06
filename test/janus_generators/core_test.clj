@@ -14,16 +14,10 @@
    not-empty?
    (has every? (matching-regex? r))))
 
-;; better way?
-(defmacro regex-generates-fact [regex]
-  (let [fact-name (str "Generates strings from regex " regex)
-        regex-str (str regex)]
-    `(fact fact-name
-           (generate-from-regex ~regex-str 10) => (all-match-regex? ~regex))))
 
 (tabular "Regex generation"
          (fact
-          (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+          (re-generate (str ?r) 10) => (all-match-regex? ?r))
          ?r
          #"A"
          #"."
@@ -43,7 +37,7 @@
 
 (tabular "More complicated stuff"
          (fact
-          (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+          (re-generate (str ?r) 10) => (all-match-regex? ?r))
          ?r
          #"ABC(?<foo>D)"
          #"[\]]"
@@ -55,7 +49,7 @@
 (comment
   (tabular "More Complicated Regex generation"
            (fact
-             (generate-from-regex (str ?r) 10) => (all-match-regex? ?r))
+             (re-generate (str ?r) 10) => (all-match-regex? ?r))
            ?r
            #"\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,3}" ;; email
            ))

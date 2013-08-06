@@ -45,7 +45,7 @@
   (cond
    (char? expression)  (constant-character-constraint expression)
    (= :any-char expression) (any-character-constraint)
-   (= :alphanumeric expression) (any-character-constraint)
+   (= :alphanumeric expression) (alphanum-constraint)
    :else (ranges-to-domain expression)))
 
 (defn constrain-character [expression]
