@@ -51,19 +51,20 @@
 
 
 (defne repeato-new [from to result]
-  ([from :* result] (unbounded-collectiono from result))
-  ([from to result] (bounded-collectiono from to result)))
+  ([from to result] (bounded-collectiono from to result))
+  ([from :* result] (unbounded-collectiono from result)))
 
-(defne repeato [reps main-goal result]
-  ([_ :*])
-  ([[_ 1] main-goal [head . []]]
-     (main-goal head))
-  ;; anything with min 0 could be empty
-  ([[0 _] _ result] (== result []))
-  ;; anything with max * could be recursion
-  ([[lower :*] main-goal [result-head . result-tail]]
-     (main-goal result-head)
-     (repeato [0 :*] main-goal result-tail)))
+(defne foo-o [ main-goal result]
+  ([_ []])
+  ([main-goal [?h . ?r]]
+     (main-goal ?h)
+     (foo-o main-goal ?r)))
+
+(defn repeato [reps main-goal result]
+  (fresh [top bottom]
+         (== [top bottom] reps)
+         (repeato-new top bottom result)
+         (foo-o main-goal result)))
 
 
 
