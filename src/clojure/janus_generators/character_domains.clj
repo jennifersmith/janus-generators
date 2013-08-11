@@ -1,5 +1,6 @@
 (ns janus-generators.character-domains
   (:require
+   [clojure.core.logic :as logic]
    [clojure.core.logic.fd :as fd]))
 
 (defn range-to-domain [range]
@@ -48,5 +49,14 @@
    (= :alphanumeric expression) (alphanum-constraint)
    :else (ranges-to-domain expression)))
 
+;; There is something weird in the order that FD is evaluated here. Does not
+;; interleave nicely like conde etc.
+;; Basically likely I am going to do a tree walk to implement this later so not 
+;; too fussed about this blatant hack
+
+
 (defn constrain-character [expression]
-  #(fd/in % (to-domain expression)))
+  (let [range
+        ;; magic number alert
+        (logic/run 128 [n] (fd/in n (to-domain expression)))]
+    #(logic/membero % range)))

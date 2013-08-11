@@ -39,3 +39,7 @@
   (map convert-to-string
        (run-goals-part-two regex n)))
 
+(comment
+
+  (re-generate #"\w\w\w: \w\w\w\w\w [0-9][0-9] °C" 20)o
+)

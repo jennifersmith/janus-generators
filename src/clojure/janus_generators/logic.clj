@@ -23,12 +23,12 @@
      )
     fail))
 
-(def max 100000)
+(def max-bound 100000)
 
 (defne bounded-collectiono [from to result]
   ([lower upper []]
      (fd/in lower 0)
-     (fd/in upper (fd/interval max)))
+     (fd/in upper (fd/interval max-bound)))
   ([lower upper [?h . ?r]]
      (fd/>= upper lower)
      (fd/> upper 0)
@@ -50,71 +50,20 @@
             (unbounded-collectiono next-lower ?r))))
 
 
-(defne repeato-new [from to result]
-  ([from to result] (bounded-collectiono from to result))
-  ([from :* result] (unbounded-collectiono from result)))
+(defna collectiono [from to result]
+  ([from :* result] (unbounded-collectiono from result))
+  ([from to result] (bounded-collectiono from to result)))
 
-(defne foo-o [ main-goal result]
+(defne listo [ main-goal result]
   ([_ []])
-  ([main-goal [?h . ?r]]
-     (main-goal ?h)
-     (foo-o main-goal ?r)))
+  ([main-goal result]
+     (fresh [h r]
+            (conso h r result)
+            (main-goal h)
+            (listo main-goal r))))
 
 (defn repeato [reps main-goal result]
   (fresh [top bottom]
          (== [top bottom] reps)
-         (repeato-new top bottom result)
-         (foo-o main-goal result)))
-
-
-
-(defn goal-fn1 [n]
-  (fd/in n (fd/interval 1 10)))
-
-(defn goal-fn2 [n]
-  (conde
-   ((== n 1))
-   ((== n 2))
-   ((== n 3))
-   ((== n 4))
-   ((== n 5))
-   ((== n 6))
-   ((== n 7))
-   ((== n 8))
-   ((== n 9))
-   ((== n 10))))
-
-
-
-(defn listo [of l]
-  (conde [(emptyo l)]
-             [(fresh [a d]
-                 (conso a d l)
-                 (of a)
-                 (listo of d))]))
-
-
-(comment
-
-(defn slices [lol]
-  (let [[heads tails] ( (juxt (partial map first) (partial map rest)) lol)]
-    (if (some seq tails)
-      (cons heads (slices tails))
-      [heads])
-        ))
-  (run 100 [n] (goal-fn1 n))
-
-
-o  (run 100 [n]
-       (goal-fn2 n))
-
-(run 100 [n]
-      (repeato [0 100] goal-fn2 n))
-
-(run 100 [n]
-     (bounded-collectiono 0 1 n))
-(run 5 [n]
-     (listo goal-fn2 n))
-
-(defn variability [results]
-  (map println (map frequencies (slices results)))))
+         (collectiono top bottom result)
+         (listo main-goal result)))
