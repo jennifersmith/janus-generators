@@ -17,8 +17,8 @@
 ;; Eachg is now a macro! Basically creates fresh things for each part 
 ;; Sure there is something easier
 (defmacro eachg2 [result goal-fns]
-  (let [goals (map (fn [goal] (vector `(~goal ~result ))) goal-fns)]
-    `(conde
+  (let [symb goals (map (fn [goal item] (vector `(~goal ~item ))) goal-fns)]
+    `(conds
       ~@goals)))
 
 ;; TODO: Better way than recursion. Although it's not going to go crazy I think it might be slow
